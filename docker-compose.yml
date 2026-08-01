@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-analytics}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-analytics}
+      POSTGRES_DB: ${POSTGRES_DB:-retail}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  airflow:
+    image: apache/airflow:2.10.5-python3.12
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://analytics:analytics@postgres:5432/airflow
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-analytics}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-analytics}
+      POSTGRES_DB: ${POSTGRES_DB:-retail}
+      _PIP_ADDITIONAL_REQUIREMENTS: "dbt-postgres==1.9.0 psycopg[binary]==3.2.6"
+    user: "${AIRFLOW_UID:-50000}:0"
+    command: standalone
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./src:/opt/airflow/src
+      - ./dbt:/opt/airflow/dbt
+      - ./data:/opt/airflow/data
+      - ./logs:/opt/airflow/logs
+
+  metabase:
+    image: metabase/metabase:v0.52.10
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:

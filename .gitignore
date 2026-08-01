@@ -1,0 +1,11 @@
+.env
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.venv/
+target/
+logs/
+data/
+postgres_data/
+airflow_data/
+.test-output/
