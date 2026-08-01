@@ -1,4 +1,4 @@
-# RetailPulse: End-to-End Data Engineering Pipeline
+# RetailPulse — A Data Engineering Project
 
 RetailPulse turns daily retail orders into analytics-ready customer and product metrics. It is designed as a compact, locally runnable portfolio project that demonstrates the full data lifecycle: ingestion, storage, transformation, orchestration, validation, and serving.
 
