@@ -31,7 +31,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-analytics}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-analytics}
       POSTGRES_DB: ${POSTGRES_DB:-retail}
-      _PIP_ADDITIONAL_REQUIREMENTS: "dbt-postgres==1.9.0 psycopg[binary]==3.2.6"
+      _PIP_ADDITIONAL_REQUIREMENTS: "dbt-postgres==1.9.0 psycopg[binary]==3.2.6 beautifulsoup4==4.12.3 requests==2.32.3"
     user: "${AIRFLOW_UID:-50000}:0"
     command: standalone
     ports:

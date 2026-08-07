@@ -17,3 +17,13 @@ CREATE TABLE IF NOT EXISTS raw.orders (
   source_file TEXT NOT NULL,
   ingested_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS raw.scraped_books (
+  product_url TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  price_gbp NUMERIC(10, 2) NOT NULL CHECK (price_gbp >= 0),
+  rating TEXT NOT NULL,
+  availability TEXT NOT NULL,
+  source_url TEXT NOT NULL,
+  scraped_at TIMESTAMPTZ NOT NULL
+);

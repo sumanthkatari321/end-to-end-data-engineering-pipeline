@@ -32,3 +32,22 @@ def load_csv(path: Path) -> int:
         with connection.cursor() as cursor:
             cursor.executemany(INSERT_SQL, rows)
     return len(rows)
+
+
+BOOK_INSERT_SQL = """
+INSERT INTO raw.scraped_books (product_url, title, price_gbp, rating, availability, source_url, scraped_at)
+VALUES (%(product_url)s, %(title)s, %(price_gbp)s, %(rating)s, %(availability)s, %(source_url)s, %(scraped_at)s)
+ON CONFLICT (product_url) DO UPDATE SET
+  title = EXCLUDED.title, price_gbp = EXCLUDED.price_gbp, rating = EXCLUDED.rating,
+  availability = EXCLUDED.availability, source_url = EXCLUDED.source_url, scraped_at = EXCLUDED.scraped_at;
+"""
+
+
+def load_books(rows: list[dict[str, str]]) -> int:
+    """Upsert a scraped catalogue snapshot into PostgreSQL raw storage."""
+    if not rows:
+        return 0
+    with psycopg.connect(database_url()) as connection:
+        with connection.cursor() as cursor:
+            cursor.executemany(BOOK_INSERT_SQL, rows)
+    return len(rows)

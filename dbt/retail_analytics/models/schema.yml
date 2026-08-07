@@ -1,5 +1,19 @@
 version: 2
 models:
+  - name: stg_scraped_books
+    description: Latest normalized snapshot of the scraped book catalogue.
+    columns:
+      - name: product_url
+        tests: [not_null, unique]
+      - name: title
+        tests: [not_null]
+      - name: price_gbp
+        tests: [not_null]
+  - name: fct_book_catalog
+    description: Catalogue metrics grouped by rating and availability.
+    columns:
+      - name: rating
+        tests: [not_null]
   - name: stg_orders
     description: Cleaned and deduplicated retail order events.
     columns:
