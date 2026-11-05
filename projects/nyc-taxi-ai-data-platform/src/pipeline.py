@@ -21,6 +21,8 @@ TLC_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year
 
 def daily_aggregate(clean: pd.DataFrame) -> pd.DataFrame:
     trips = clean.copy()
+    if "tip_amount" not in trips:
+        trips["tip_amount"] = 0.0
     trips["pickup_date"] = trips["tpep_pickup_datetime"].dt.date
     trips["is_airport_trip"] = trips.get("PULocationID", pd.Series(index=trips.index)).isin(
         [1, 132, 138]
@@ -127,3 +129,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
