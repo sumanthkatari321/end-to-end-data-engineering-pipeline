@@ -14,7 +14,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run unit tests
+      - name: Run RetailPulse unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Install NYC Taxi project dependencies
+        run: python -m pip install -r projects/nyc-taxi-ai-data-platform/requirements.txt
+      - name: Run NYC Taxi project unit tests
+        working-directory: projects/nyc-taxi-ai-data-platform
         run: python -m unittest discover -s tests -v
       - name: Validate compose file
         run: docker compose config --quiet

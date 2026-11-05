@@ -1,70 +1,65 @@
-# RetailPulse — A Data Engineering Project
+# End-to-End Data Engineering Projects
 
-RetailPulse turns daily retail orders into analytics-ready customer and product metrics. It is designed as a compact, locally runnable portfolio project that demonstrates the full data lifecycle: ingestion, storage, transformation, orchestration, validation, and serving.
+A portfolio repository for practical data engineering patterns, from raw ingestion through analytics-ready outputs.
 
-## Architecture
+## Projects
 
-```text
-Synthetic order events -> Python ingestion -> PostgreSQL (raw)
-                                          -> dbt (staging + marts)
-Airflow orchestrates ingestion, transformations, and quality checks
-Metabase reads curated marts for dashboards
+### NYC Taxi AI Data Platform
+
+A real-world batch pipeline for NYC TLC Yellow Taxi trip records. It ingests monthly public Parquet data, validates the source contract, creates curated trip and daily metric outputs with DuckDB, detects statistical anomalies, and optionally generates an AI explanation from aggregate metrics.
+
+- [Project guide and quick start](projects/nyc-taxi-ai-data-platform/README.md)
+- [Architecture](projects/nyc-taxi-ai-data-platform/docs/architecture.md)
+- [Data contract](projects/nyc-taxi-ai-data-platform/docs/data-contract.md)
+- [Roadmap](projects/nyc-taxi-ai-data-platform/docs/roadmap.md)
+
+Run this project independently from its directory:
+
+```bash
+cd projects/nyc-taxi-ai-data-platform
+pip install -r requirements.txt
+python -m src.pipeline --year 2024 --month 1
 ```
 
-## Stack
+The AI summary is optional. Set `OPENAI_API_KEY` and pass `--ai`; only daily aggregates and anomaly findings are sent to the model.
 
-- **Python** for deterministic source generation and ingestion
-- **PostgreSQL** for raw and warehouse storage
-- **dbt Core** for SQL transformations and tests
-- **Apache Airflow** for scheduled orchestration
-- **Metabase** for BI serving
-- **Docker Compose** for one-command local deployment
-- **GitHub Actions** for lint and unit-test automation
+### RetailPulse pipeline example
 
-## Quick start
+The original local demo shows a scheduled retail ELT flow using Python, PostgreSQL, Airflow, dbt, Docker Compose, and Metabase. It uses deterministic generated orders so the infrastructure can be exercised without external data access.
+
+Start the services with `docker compose up --build`, then follow the [Airflow and Metabase setup](#retailpulse-local-stack).
+
+## Repository structure
+
+```text
+projects/
+  nyc-taxi-ai-data-platform/  Real TLC data, DuckDB, quality rules, AI insights
+src/                          RetailPulse example ingestion and generator
+airflow/dags/                 RetailPulse orchestration
+dbt/retail_analytics/         RetailPulse staging models and marts
+sql/                          PostgreSQL bootstrap
+tests/                        RetailPulse unit tests
+```
+
+## RetailPulse local stack
 
 1. Copy `.env.example` to `.env`.
-2. Start the platform: `docker compose up --build`.
-3. Open Airflow at `http://localhost:8080` (`airflow` / `airflow`) and trigger `retail_daily_pipeline`.
-4. Open Metabase at `http://localhost:3000`, connect to PostgreSQL, and explore the `analytics` schema.
+2. Run `docker compose up --build`.
+3. Open Airflow at `http://localhost:8080` and trigger `retail_daily_pipeline`.
+4. Open Metabase at `http://localhost:3000` and connect to PostgreSQL.
 
-The DAG runs three idempotent stages: load daily data, run dbt models, then run dbt tests. Generated input data and pipeline logs are mounted locally under `data/` and `logs/`.
+The Airflow DAG loads generated orders, runs dbt transformations, and executes dbt tests. The NYC Taxi project has its own dependencies, CLI, documentation, and CI test step.
 
-## Data model
+## Data sources and attribution
 
-| Layer | Relation | Purpose |
-|---|---|---|
-| Raw | `raw.orders` | Append-safe source events with ingestion metadata |
-| Staging | `stg_orders` | Typed, cleaned, deduplicated order records |
-| Mart | `fct_daily_sales` | Daily revenue, orders, units, and average order value |
-| Mart | `dim_customers` | Customer lifetime value and purchase behavior |
-| Mart | `dim_products` | Product-level revenue and sales performance |
+The NYC Taxi project uses the New York City Taxi & Limousine Commission [Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page). This repository is independent and is not affiliated with the TLC.
 
-## Repository layout
+## Development
 
-```text
-src/                 Python ingestion package
-airflow/dags/        Workflow definition
-dbt/retail_analytics dbt project and data tests
-sql/                 Bootstrap DDL
-tests/               Fast unit tests
-```
-
-## Quality and reliability choices
-
-- Deterministic data generation makes runs reproducible.
-- `ON CONFLICT` upserts make repeated loads safe.
-- dbt schema tests enforce primary-key, null, and relationship expectations.
-- The DAG retries failed tasks and stops downstream publication on validation failure.
-- Environment variables keep credentials out of source control.
-
-## Local validation
+RetailPulse tests run with:
 
 ```bash
 python -m unittest discover -s tests -v
-docker compose config
 ```
 
-## Next steps for cloud deployment
-
-Replace the generator with an API/Kafka source, move raw data to S3, run dbt against Snowflake or BigQuery, and deploy Airflow on MWAA/Composer. The layer boundaries and contracts in this project stay the same.
+The NYC Taxi project test suite runs in its own GitHub Actions step using the dependencies from its `requirements.txt`.
